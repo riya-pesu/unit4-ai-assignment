@@ -1,13 +1,10 @@
-name: Run bubble_sort tests on PR open
+name: Run bubble_sort tests on Issue open
 
-# Trigger when a pull request is opened that includes changes to bubble_sort.py.
-# Note: GitHub does not emit an event when a user simply views/opens a file in the repo UI,
-# so we use pull_request: types: [opened] with a path filter for the file.
+# Trigger the workflow when a new issue is created (opened) in the repository.
+# Note: 'issues' events are repository-scoped (cannot be path-filtered to a single file).
 on:
-  pull_request:
+  issues:
     types: [opened]
-    paths:
-      - 'bubble_sort.py'
   workflow_dispatch: {}
 
 jobs:
