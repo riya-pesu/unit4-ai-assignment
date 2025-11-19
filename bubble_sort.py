@@ -19,7 +19,6 @@ import sys
 
 __all__ = ["bubble_sort", "bubble_sort_in_place"]
 
-
 def _parse_token(tok: str) -> Any:
     """
     Convert a CLI token to int or float when possible, otherwise return
@@ -41,7 +40,6 @@ def _parse_token(tok: str) -> Any:
         except Exception:
             continue
     return t
-
 
 def bubble_sort_in_place(arr: List[Any], *, reverse: bool = False) -> List[Any]:
     """
@@ -76,7 +74,6 @@ def bubble_sort_in_place(arr: List[Any], *, reverse: bool = False) -> List[Any]:
             break
     return arr
 
-
 def bubble_sort(sequence: Iterable[Any], *, reverse: bool = False, in_place: bool = False) -> List[Any]:
     """
     Sort an iterable using bubble sort.
@@ -102,7 +99,6 @@ def bubble_sort(sequence: Iterable[Any], *, reverse: bool = False, in_place: boo
         # caller asserts it's a list for in-place sorting; bubble_sort_in_place will validate
         return bubble_sort_in_place(sequence, reverse=reverse)  # type: ignore[arg-type]
     return bubble_sort_in_place(list(sequence), reverse=reverse)
-
 
 def _cli(argv: List[str]) -> int:
     """
@@ -143,6 +139,6 @@ def _cli(argv: List[str]) -> int:
         print(" ".join(map(str, out)))
     return 0
 
-
+# Main function
 if __name__ == "__main__":
     raise SystemExit(_cli(sys.argv[1:]))
