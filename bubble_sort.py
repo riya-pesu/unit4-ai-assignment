@@ -7,10 +7,7 @@ Concise, readable bubble sort with minimal surface area:
 - bubble_sort_in_place(list, reverse=False)
 - small CLI for quick use
 
-This refactor adds explicit docstrings to the previously compact functions
-so each part of the module is documented for maintainers and automated tools.
-
-Preserves helpful TypeError messages for non-iterable inputs and
+There are helpful TypeError messages for non-iterable inputs and
 non-comparable elements while keeping the implementation compact.
 """
 from typing import Iterable, List, Any
