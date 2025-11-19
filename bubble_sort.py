@@ -2,185 +2,145 @@
 """
 bubble_sort.py
 
-A small, well-documented implementation of the Bubble Sort algorithm with
-input validation and helpful error messages.
+Concise, readable bubble sort with minimal surface area:
+- bubble_sort(sequence, reverse=False, in_place=False)
+- bubble_sort_in_place(list, reverse=False)
+- small CLI for quick use
 
-Features
-- bubble_sort(sequence, reverse=False, in_place=False): stable bubble sort
-  implementation that either returns a new sorted list or sorts a provided list
-  in place.
-- Command-line interface to sort items provided as arguments or via prompt.
-- Tries to interpret numeric inputs (int/float) automatically; leaves other
-  items as strings so they can still be sorted lexicographically.
-- Robust error handling for non-iterable inputs and non-comparable elements.
+This refactor adds explicit docstrings to the previously compact functions
+so each part of the module is documented for maintainers and automated tools.
 
-Complexity
-- Time: O(n^2) worst-case
-- Space: O(1) additional (when in_place=True) or O(n) for the returned copy
-
-Author: GitHub Copilot (riya-pesu request)
+Preserves helpful TypeError messages for non-iterable inputs and
+non-comparable elements while keeping the implementation compact.
 """
-
 from typing import Iterable, List, Any
 import argparse
 import sys
 
-__all__ = ["bubble_sort"]
+__all__ = ["bubble_sort", "bubble_sort_in_place"]
+
+
+def _parse_token(tok: str) -> Any:
+    """
+    Convert a CLI token to int or float when possible, otherwise return
+    the stripped string.
+
+    This helper keeps the CLI friendly to numeric inputs while preserving
+    lexicographic sorting for non-numeric tokens.
+
+    Args:
+        tok: Raw token string from CLI or interactive input.
+
+    Returns:
+        int | float | str: Parsed value.
+    """
+    t = tok.strip()
+    for conv in (int, float):
+        try:
+            return conv(t)
+        except Exception:
+            continue
+    return t
+
+
+def bubble_sort_in_place(arr: List[Any], *, reverse: bool = False) -> List[Any]:
+    """
+    Sort a list in place using the bubble sort algorithm.
+
+    The algorithm is stable and has O(n^2) worst-case time complexity. This
+    function mutates the provided list and also returns it for convenience.
+
+    Args:
+        arr: A list of comparable items to sort.
+        reverse: If True, sort in descending order (largest first).
+
+    Returns:
+        The same list instance after being sorted.
+
+    Raises:
+        TypeError: If arr is not a list or if two elements cannot be compared.
+    """
+    if not isinstance(arr, list):
+        raise TypeError("bubble_sort_in_place requires a list for in-place sorting.")
+    n = len(arr)
+    for end in range(n - 1, 0, -1):
+        swapped = False
+        for i in range(end):
+            try:
+                if (arr[i] > arr[i + 1]) ^ reverse:
+                    arr[i], arr[i + 1] = arr[i + 1], arr[i]
+                    swapped = True
+            except TypeError as exc:
+                raise TypeError(f"Cannot compare {arr[i]!r} and {arr[i+1]!r}") from exc
+        if not swapped:
+            break
+    return arr
 
 
 def bubble_sort(sequence: Iterable[Any], *, reverse: bool = False, in_place: bool = False) -> List[Any]:
     """
-    Sorts a sequence using the bubble sort algorithm.
+    Sort an iterable using bubble sort.
 
-    Parameters
-    - sequence: An iterable of comparable items (numbers, strings, or any objects
-      that implement comparison operators).
-    - reverse: If True, sort in descending order. Default is False (ascending).
-    - in_place: If True, attempt to sort the provided list object in place.
-      - Must be passed a list object (not a tuple or generator).
-      - If in_place=True and sequence is not a list, a TypeError is raised.
-      - Default is False: the function returns a new sorted list and does not
-        mutate the input.
+    This wrapper accepts any iterable; when in_place is True it requires
+    a list and will sort it directly. When in_place is False (default), a new
+    list copy is created and sorted, leaving the original iterable untouched.
 
-    Returns
-    - A list containing the sorted items. If in_place=True and sequence is a list,
-      the same list object is returned after being mutated.
+    Args:
+        sequence: Iterable of comparable items.
+        reverse: If True, sort in descending order.
+        in_place: If True, attempt to sort the given object in place (must be a list).
 
-    Raises
-    - TypeError: If `sequence` is not iterable.
-    - TypeError: If in_place=True but `sequence` is not a list.
-    - TypeError: If two elements are found that cannot be compared with each other.
-      The exception message will include the indices and the values that failed
-      to compare.
+    Returns:
+        A list with the sorted items (same instance if in_place=True and input was a list).
 
-    Examples
-    >>> bubble_sort([3, 1, 2])
-    [1, 2, 3]
-    >>> bubble_sort(["c", "a", "b"], reverse=True)
-    ['c', 'b', 'a']
-    >>> lst = [4, 2, 1]
-    >>> bubble_sort(lst, in_place=True) is lst
-    True
+    Raises:
+        TypeError: If sequence is not iterable, or if in_place=True and sequence is not a list.
     """
-    # Validate iterability
     if not hasattr(sequence, "__iter__"):
-        raise TypeError("The 'sequence' argument must be iterable (e.g., list, tuple).")
-
-    # Handle in_place parameter
+        raise TypeError("sequence must be iterable")
     if in_place:
-        if not isinstance(sequence, list):
-            raise TypeError("in_place=True requires a list object (mutable).")
-        arr = sequence
-    else:
-        # Make a shallow copy so we do not mutate the caller's sequence
-        arr = list(sequence)
-
-    n = len(arr)
-    if n < 2:
-        # Nothing to sort
-        return arr
-
-    # Perform bubble sort
-    # We use XOR-style comparison to reuse same logic for reverse parameter:
-    # swap when (arr[j] > arr[j+1]) is True for ascending,
-    # or when False for descending (hence XOR with reverse flag).
-    for i in range(n):
-        swapped = False
-        # Last i elements are already in place
-        for j in range(0, n - i - 1):
-            try:
-                should_swap = (arr[j] > arr[j + 1]) ^ reverse
-            except TypeError as exc:
-                # Provide a clear error showing where the comparison failed
-                raise TypeError(
-                    f"Cannot compare elements at positions {j} and {j+1}: {arr[j]!r} vs {arr[j+1]!r}"
-                ) from exc
-
-            if should_swap:
-                arr[j], arr[j + 1] = arr[j + 1], arr[j]
-                swapped = True
-
-        if not swapped:
-            # List is sorted early
-            break
-
-    return arr
-
-
-def _parse_item(token: str) -> Any:
-    """
-    Try to parse a token into int or float. If both conversions fail, return the
-    original string (stripped).
-
-    This helps the CLI accept numeric inputs naturally while still supporting
-    string sorting.
-    """
-    s = token.strip()
-    # Try int
-    try:
-        return int(s)
-    except ValueError:
-        pass
-    # Try float
-    try:
-        return float(s)
-    except ValueError:
-        pass
-    # Fallback to string
-    return s
+        # caller asserts it's a list for in-place sorting; bubble_sort_in_place will validate
+        return bubble_sort_in_place(sequence, reverse=reverse)  # type: ignore[arg-type]
+    return bubble_sort_in_place(list(sequence), reverse=reverse)
 
 
 def _cli(argv: List[str]) -> int:
-    parser = argparse.ArgumentParser(
-        prog="bubble_sort.py",
-        description="Simple bubble sort implementation (educational)."
-    )
-    parser.add_argument(
-        "items",
-        nargs="*",
-        help="Items to sort. If omitted, you will be prompted to enter a comma-separated list."
-    )
-    parser.add_argument(
-        "-r", "--reverse",
-        action="store_true",
-        help="Sort in descending order."
-    )
-    parser.add_argument(
-        "-v", "--verbose",
-        action="store_true",
-        help="Show the result and a short summary."
-    )
+    """
+    Minimal command-line interface.
 
-    args = parser.parse_args(argv)
+    Accepts positional items or prompts interactively (comma-separated).
+    Returns:
+        Exit code (0 success, 1 user/input error, 2 comparison error).
+    """
+    p = argparse.ArgumentParser(description="Bubble sort (concise).")
+    p.add_argument("items", nargs="*", help="Items to sort (space separated).")
+    p.add_argument("-r", "--reverse", action="store_true", help="Sort descending.")
+    p.add_argument("-v", "--verbose", action="store_true", help="Show original + sorted.")
+    args = p.parse_args(argv)
 
     if not args.items:
         try:
-            raw = input("Enter items separated by commas (e.g. 3, 1, 2 or a, b, c): ").strip()
+            raw = input("Enter items (comma separated): ").strip()
         except (EOFError, KeyboardInterrupt):
-            print("\nNo input provided. Exiting.", file=sys.stderr)
             return 1
         if not raw:
-            print("No items entered. Exiting.", file=sys.stderr)
             return 1
         tokens = [t for t in raw.split(",")]
     else:
         tokens = args.items
 
-    items = [_parse_item(t) for t in tokens]
-
+    items = [_parse_token(t) for t in tokens]
     try:
-        sorted_items = bubble_sort(items, reverse=args.reverse, in_place=False)
+        out = bubble_sort(items, reverse=args.reverse, in_place=False)
     except TypeError as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 2
 
     if args.verbose:
         print("Original:", items)
-        print("Sorted:  ", sorted_items)
+        print("Sorted:  ", out)
     else:
-        # Print a simple one-line representation
-        print(" ".join(map(str, sorted_items)))
-
+        print(" ".join(map(str, out)))
     return 0
 
 
