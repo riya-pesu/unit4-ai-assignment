@@ -1,7 +1,7 @@
+# bubble_sort.py
+
 #!/usr/bin/env python3
 """
-bubble_sort.py
-
 Concise, readable bubble sort with minimal surface area:
 - bubble_sort(sequence, reverse=False, in_place=False)
 - bubble_sort_in_place(list, reverse=False)
